@@ -1,68 +1,41 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Meetings app for the Deaf
 
-## Available Scripts
+# What is it
+This is a product which takes in what others are saying in a meeting and transcribe real-time using kaldi-asr. Users can save the transcript or copy it to their clipboard after they are done with the meeting. 
 
-In the project directory, you can run:
+# Installation
 
-### `npm start`
+## OS
+Please use Ubuntu. If you try Windows, it can go horribly wrong (talking from previous experiences)
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Requirements
+- [NodeJS]
+- [npm]
+- [docker (you can build kaldi on your own and make a server but it will take the semester to complete this)]
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+## Steps
+1. Run the steps for building a kaldi server (Assuming you have docker installed): 
+    1. `docker pull jcsilva/docker-kaldi-gstreamer-server`
+    2. `mkdir /media/kaldi_models && cd /media/kaldi_models`
+    3. `wget https://phon.ioc.ee/~tanela/tedlium_nnet_ms_sp_online.tgz`
+    4. `tar -zxvf tedlium_nnet_ms_sp_online.tgz`
+    5. `wget https://raw.githubusercontent.com/alumae/kaldi-gstreamer-server/master/sample_english_nnet2.yaml -P /media/kaldi_models`
+    6. `find /media/kaldi_models/ -type f | xargs sed -i 's:test:/opt:g'`
+    7. `sed -i 's:full-post-processor:#full-post-processor:g' /media/kaldi_models/sample_english_nnet2.yaml`
+    8. `docker run -it -p 8080:80 -v /media/kaldi_models:/opt/models jcsilva/docker-kaldi-gstreamer-server:latest /bin/bash`
+    9. `/opt/start.sh -y /opt/models/sample_english_nnet2.yaml`
+    10. You have built the server and it is up and running with the steps 9-10. To stop the server, run `/opt/stop.sh` in your docker container. 
+2. Run the steps for building the front-end (Assuming you have npm and nodejs installed): 
+    1. `git clone https://github.com/SWEN-789/dhh-project-dkaushik95.git`
+    2. `cd dhh-project-dkaushik95`
+    3. `npm install`
+    4. `npm start` or `npm run start`
+    5. This should open a browser to the webpage. If it doesn't, go to `localhost:3000`
+3. Once you are in the webpage:
+    1. Press the `initialize microphone` button. This will ask your browser to allow the usage of a microphone. 
+    2. Press the `Start meeting` button. This should start transcribing what you/others say. 
+    3. When the meeting is done, press the `Stop meeting` button. It should give you an option to save the transcript as a txt file or copy it to the clipboard.
 
-### `npm test`
+## Error cases
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+If you find any errors after you run it a couple of times, one of the reason could be that the worker is still trying to process the previous work. You should see the number of workers available in the webpage. For a quick fix, you may run the step 1.10 and then 1.9 in your docker and refresh the page. 
